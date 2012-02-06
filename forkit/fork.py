@@ -1,5 +1,6 @@
 from copy import deepcopy
 from django.db import models
+from django.contrib.contenttypes import generic
 from forkit import utils, signals
 from forkit.commit import commit_model_object
 
@@ -35,6 +36,11 @@ def _fork_many2many(instance, value, field, direct, accessor, deep, **kwargs):
 
     instance._commits.defer(accessor, fork)
 
+def _fork_genericrelation(instance, value, field, direct, accessor, deep, **kwargs):
+    fork = value
+
+    instance._commits.defer(accessor, fork)
+
 def _fork_field(reference, instance, accessor, **kwargs):
     """Creates a copy of the reference value for the defined ``accessor``
     (field). For deep forks, each related object is related objects must
@@ -58,6 +64,10 @@ def _fork_field(reference, instance, accessor, **kwargs):
 
     if isinstance(field, models.ManyToManyField):
         return _fork_many2many(instance, value, field, direct,
+            accessor, **kwargs)
+
+    if isinstance(field, generic.GenericRelation):
+        return _fork_genericrelation(instance, value, field, direct,
             accessor, **kwargs)
 
     # non-relational field, perform a deepcopy to ensure no mutable nonsense
