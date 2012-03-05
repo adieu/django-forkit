@@ -23,6 +23,7 @@ def _fork_foreignkey(instance, value, field, direct, accessor, deep, **kwargs):
             fork = utils.DeferredCommit(fork)
     else:
         fork = value
+        setattr(instance, accessor, value)
 
     instance._commits.defer(accessor, fork, direct=direct)
 
